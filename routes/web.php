@@ -24,7 +24,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth')->group(function () {
-    Route::resource('todos', TodoController::class);
+    Route::get('/todos', [TodoController::class,'index'])->name('todos.index');
     Route::patch('/todos/{todo}/complete', [TodoController::class, 'complete'])
         ->name('todos.complete');
 });
