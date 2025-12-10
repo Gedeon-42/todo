@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateTodoRequest;
+use App\Http\Requests\UpdateTodoRequest;
 use App\Models\Todo;
 use Illuminate\Http\Request;
 
@@ -19,13 +21,9 @@ class TodoController extends Controller
         return view('todos.create');
     }
 
-        public function store(Request $request)
+        public function store(CreateTodoRequest $request)
     {
-        $validated = $request->validate([
-            'title'=>'required|max:255',
-            'description'=>'nullable',
-            'due_date'=>'required|date'
-        ]);
+        $validated = $request->validated();
 
         auth()->user()->todos()->create($validated);
 
@@ -38,15 +36,11 @@ class TodoController extends Controller
         $this->authorize('update',$todo);
         return view('todos.edit',compact('todo'));
     }
-    public function update(Request $request, Todo $todo)
+    public function update(UpdateTodoRequest $request, Todo $todo)
     {
         $this->authorize('update',$todo);
 
-        $validated = $request->validate([
-            'title'=>'required|max:255',
-            'description'=>'nullable',
-            'due_date'=>'required|date'
-        ]);
+        $validated = $request->validated();
 
         $todo->update($validated);
 

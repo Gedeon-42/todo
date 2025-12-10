@@ -11,7 +11,7 @@ class UpdateTodoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,6 +23,9 @@ class UpdateTodoRequest extends FormRequest
     {
         return [
             //
+            'title'=>'required|max:255',
+            'description'=>'nullable',
+            'due_date'=>'required|date'
         ];
     }
 }
