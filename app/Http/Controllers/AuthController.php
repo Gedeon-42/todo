@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,39 +16,35 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-       public function register(Request $request) {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
-        ]);
+       public function register(UserRequest $request) {
+    $data = $request->validated();
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
+              $data['password'] = Hash::make($data['password']);
+        $user = User::create($data);
 
-        Auth::login($user);
-        return redirect()->route('todos.index');
+           $token = $user->createToken('main')->plainTextToken;
+        return response(compact('user', 'token'));
     }
 
      public function showLogin() {
         return view('auth.login');
     }
 
-    public function login(Request $request) {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
-        if (Auth::attempt($credentials)) {
-            return redirect()->route('todos.index');
+    public function login(LoginRequest $request)
+    {
+        $credentials = $request->validated();
+        if (!Auth::attempt($credentials)) {
+            return response([
+                'message' => 'Provided email or password is incorrect'
+            ], 422);
         }
 
-        return back()->withErrors(['email' => 'Invalid login credentials']);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $token = $user->createToken('main')->plainTextToken;
+        return response(compact('user', 'token'));
     }
+    
 
       public function logout() {
         Auth::logout();

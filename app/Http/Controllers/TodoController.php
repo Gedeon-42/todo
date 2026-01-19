@@ -2,70 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CreateTodoRequest;
-use App\Http\Requests\UpdateTodoRequest;
+
 use App\Models\Todo;
 use Illuminate\Http\Request;
+use App\Services\TodoService;
+use Illuminate\Support\Facades\Log;
+use App\Http\Resources\TodoResource;
+use App\Http\Requests\CreateTodoRequest;
+use App\Http\Requests\UpdateTodoRequest;
 
 class TodoController extends Controller
 {
+
+    public function __construct(protected TodoService $todoService) {}
     //
-     public function index()
+    public function index(Request $request)
     {
-        $todos = auth()->user()->todos()->latest()->get();
-        return view('todos.index', compact('todos'));
-    }
-
-     public function create()
-    {
-        return view('todos.create');
-    }
-
-        public function store(CreateTodoRequest $request)
-    {
-        $validated = $request->validated();
-
-        auth()->user()->todos()->create($validated);
-
-        return redirect()->route('todos.index')
-               ->with('success','Todo created successfully');
-    }
-
-     public function edit(Todo $todo)
-    {
-        $this->authorize('update',$todo);
-        return view('todos.edit',compact('todo'));
-    }
-    public function update(UpdateTodoRequest $request, Todo $todo)
-    {
-        $this->authorize('update',$todo);
-
-        $validated = $request->validated();
-
-        $todo->update($validated);
-
-        return redirect()->route('todos.index')
-               ->with('success','Todo updated successfully');
-    }
-
-       public function destroy(Todo $todo)
-    {
-        $this->authorize('delete',$todo);
-        $todo->delete();
-
-        return back()->with('success','Todo deleted');
-    }
-
-    public function complete(Todo $todo)
-    {
-        $this->authorize('update',$todo);
-
-        $todo->update([
-            'is_completed'=>true,
-            'completed_at'=>now()
+        $request->validate([
+            'user_id' => 'required|integer',
         ]);
 
-        return back()->with('success','Marked as completed');
+        $todos = Todo::where('user_id', $request->user_id)->get();
+
+        return response()->json([
+            'data' => $todos
+        ]);
     }
 
+    public function store(CreateTodoRequest $request)
+    {
+
+        $todo = $this->todoService->createTodo($request->validated());
+        return response()->json([
+            'message' => 'Todo created successfully',
+            'todo' => $todo
+        ]);
+    }
+
+    public function update(UpdateTodoRequest $request, Todo $todo)
+    {
+
+         $todo = $this->todoService->updateTodo($todo, $request->validated());
+        return new TodoResource($todo);
+    }
+
+    public function destroy(Todo $todo)
+    {
+        $todo->delete();
+        return response()->json([
+            'message' => 'Todo deleted successfully'
+        ]);
+    }
 }

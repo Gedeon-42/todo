@@ -25,7 +25,7 @@ class UpdateTodoRequest extends FormRequest
             //
             'title'=>'required|max:255',
             'description'=>'nullable',
-            'due_date'=>'required|date'
+            'user_id'=>'required|integer'
         ];
     }
 }
