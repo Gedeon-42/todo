@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-
 use App\Models\Todo;
 use Illuminate\Http\Request;
 use App\Services\TodoService;
-use Illuminate\Support\Facades\Log;
 use App\Http\Resources\TodoResource;
 use App\Http\Requests\CreateTodoRequest;
 use App\Http\Requests\UpdateTodoRequest;
@@ -23,15 +21,12 @@ class TodoController extends Controller
         ]);
 
         $todos = Todo::where('user_id', $request->user_id)->get();
-
-        return response()->json([
-            'data' => $todos
-        ]);
+        return TodoResource::collection($todos);
     }
+
 
     public function store(CreateTodoRequest $request)
     {
-
         $todo = $this->todoService->createTodo($request->validated());
         return response()->json([
             'message' => 'Todo created successfully',
